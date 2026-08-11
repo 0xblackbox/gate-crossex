@@ -36,9 +36,12 @@ The current tree contains no production request that attributes an account or or
 - `scripts/no-attribution.test.mjs` scans production, installer, update, and user-facing source for the removed Gate channel header, referral query parameters, and the upstream operational repository.
 - Gate client tests verify the exact order body and exact authenticated header allowlist; the client suite passed 16/16.
 - Private WebSocket tests verify the exact login and subscription envelope keys; the focused REST/WebSocket/config suite passed 26/26.
-- The complete unit suite passed 351/351; Chromium end-to-end tests passed 11/11.
+- The complete unit suite passed 352/352; Chromium end-to-end tests passed 11/11.
 - Bootstrap/update tests passed 9 with 1 platform skip; release-installer tests passed 10 with 3 platform skips. Lint, typecheck, and production build passed.
 - `npm audit` reported zero known vulnerabilities at audit time.
+- The third-pass trading-integrity and dependency review is documented in
+  [`security-audit-round-3.md`](security-audit-round-3.md). It found no additional maintainer
+  commission path and changed exposure-increasing terminal dust repair to explicit opt-in.
 
 ## Residual trust boundaries
 

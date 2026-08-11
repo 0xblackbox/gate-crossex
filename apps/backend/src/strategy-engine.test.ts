@@ -826,7 +826,7 @@ describe('strategy engine', () => {
     expect(gateway.createdOrders.some((order) => order.qty === '0.03')).toBe(false);
   });
 
-  it('tops up and exactly trims a sub-min-notional residual only after reaching 100%', async () => {
+  it('pauses instead of increasing exposure to clear terminal dust by default', async () => {
     const { engine, runtime, database, gateway, markets } = await createHarness();
     markets.set('BINANCE_FUTURE_BTC_USDT', '54.2', '54.3');
     markets.set('OKX_FUTURE_BTC_USDT', '54', '54.1');
@@ -834,6 +834,31 @@ describe('strategy engine', () => {
     const record = await engine.startStrategy({
       ...takerTakerConfig, totalAmount: '1', perOrderQuantity: '1',
       executionMethod: 'MAKER_TAKER', makerLeg: 'right',
+    });
+    seedFilledStrategyOrder(database, record.id, 'terminal-left', 'BINANCE_FUTURE_BTC_USDT', 'SELL', '1', 'left');
+    seedFilledStrategyOrder(database, record.id, 'terminal-right', 'OKX_FUTURE_BTC_USDT', 'BUY', '1.03', 'right');
+
+    await engine.tick();
+
+    expect(gateway.createdOrders).toHaveLength(0);
+    expect(runtime.getStrategy(record.id)).toMatchObject({ status: 'PAUSED' });
+    expect(runtime.strategyLogs(record.id)).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        event: 'Strategy paused',
+        result: expect.stringContaining('exposure-increasing dust repair is disabled'),
+      }),
+    ]));
+  });
+
+  it('tops up and exactly trims a sub-min-notional residual only after explicit opt-in', async () => {
+    const { engine, runtime, database, gateway, markets } = await createHarness();
+    markets.set('BINANCE_FUTURE_BTC_USDT', '54.2', '54.3');
+    markets.set('OKX_FUTURE_BTC_USDT', '54', '54.1');
+    database.prepare("UPDATE crossex_instruments SET min_size = '0.01', min_notional = '5', lot_size = '0.01' WHERE symbol LIKE '%_FUTURE_BTC_USDT'").run();
+    const record = await engine.startStrategy({
+      ...takerTakerConfig, totalAmount: '1', perOrderQuantity: '1',
+      executionMethod: 'MAKER_TAKER', makerLeg: 'right',
+      allowExposureIncreasingDustRepair: true,
     });
     seedFilledStrategyOrder(database, record.id, 'terminal-left', 'BINANCE_FUTURE_BTC_USDT', 'SELL', '1', 'left');
     seedFilledStrategyOrder(database, record.id, 'terminal-right', 'OKX_FUTURE_BTC_USDT', 'BUY', '1.03', 'right');
@@ -871,6 +896,7 @@ describe('strategy engine', () => {
     const record = await engine.startStrategy({
       ...takerTakerConfig, totalAmount: '1', perOrderQuantity: '1',
       executionMethod: 'MAKER_TAKER', makerLeg: 'right',
+      allowExposureIncreasingDustRepair: true,
     });
     seedFilledStrategyOrder(database, record.id, 'retry-left', 'BINANCE_FUTURE_BTC_USDT', 'SELL', '1', 'left');
     seedFilledStrategyOrder(database, record.id, 'retry-right', 'OKX_FUTURE_BTC_USDT', 'BUY', '1.03', 'right');

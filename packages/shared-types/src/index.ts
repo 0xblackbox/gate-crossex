@@ -865,6 +865,7 @@ export const StrategyConfigSchema = z.object({
   reduceOnly: z.boolean(),
   executionMethod: z.enum(['TAKER_TAKER', 'MAKER_TAKER']),
   makerLeg: z.enum(['left', 'right']).optional(),
+  allowExposureIncreasingDustRepair: z.boolean().optional(),
   closePlan: z.object({
     orderCount: z.number().int().min(2).max(100),
     intervalSeconds: z.number().int().min(1).max(86_400),

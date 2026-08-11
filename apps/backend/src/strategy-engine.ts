@@ -1976,6 +1976,11 @@ export class StrategyEngine {
     const topUpRequired = completedTarget
       && sizeError?.code === 'strategy_order_below_minimum_notional';
     if (sizeError && !topUpRequired) return;
+    if (topUpRequired && !actor.config.allowExposureIncreasingDustRepair) {
+      await this.pause(actor,
+        `Terminal residual ${desiredQuantity.toString()} ${actor.config.asset} is below minimum notional; exposure-increasing dust repair is disabled`);
+      return;
+    }
     const previous = this.latestLegOrderStatement.get(
       actor.id,
       repairLeg.leg,

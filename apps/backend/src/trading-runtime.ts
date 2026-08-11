@@ -60,6 +60,11 @@ export const CreateStrategyInputSchema = z.object({
   reduceOnly: z.boolean().default(false),
   executionMethod: z.enum(['TAKER_TAKER', 'MAKER_TAKER']),
   makerLeg: z.enum(['left', 'right']).optional(),
+  /**
+   * Opt in to a terminal dust repair that briefly opens additional exposure before an exact
+   * reduce-only trim. Disabled by default because it creates extra market volume and fees.
+   */
+  allowExposureIncreasingDustRepair: z.boolean().default(false),
   closePlan: z.object({
     orderCount: z.number().int().min(2).max(100),
     intervalSeconds: z.number().int().min(1).max(86_400),

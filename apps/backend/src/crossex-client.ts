@@ -26,11 +26,6 @@ const IsolatedExchangeTypeSchema = z.enum([
   'BINANCE', 'OKX', 'GATE', 'BYBIT', 'KRAKEN', 'HYPERLIQUID', 'DERIBIT',
 ]);
 
-// Gate API Broker attribution for orders placed through this terminal. Gate requires
-// lowercase letters/digits, under 20 chars. Do not send this order-specific header on
-// account-setting requests such as leverage updates.
-const BROKER_CHANNEL_ID = 'yourquantguy';
-
 const GateAccountAssetSchema = z.object({
   coin: z.string(),
   exchange_type: z.string(),
@@ -365,7 +360,7 @@ export class GateCrossExClient implements TradingCrossExGateway, PortfolioOperat
   async querySpotAccounts(credentials: GateCredentials): Promise<GateSpotAccount[]> {
     return this.signedRequest(
       'GET', SPOT_ACCOUNTS_ENDPOINT, '', '', credentials,
-      z.array(GateSpotAccountSchema), 'INVALID_SPOT_ACCOUNTS_RESPONSE', false, 'normal',
+      z.array(GateSpotAccountSchema), 'INVALID_SPOT_ACCOUNTS_RESPONSE', 'normal',
     );
   }
 
@@ -376,11 +371,11 @@ export class GateCrossExClient implements TradingCrossExGateway, PortfolioOperat
   async queryPortfolio(credentials: GateCredentials): Promise<GateCrossExPortfolio> {
     const historyQuery = new URLSearchParams({ page: '1', limit: '100' }).toString();
     const [account, positions, marginPositions, openOrders, recentTrades] = await Promise.all([
-      this.signedRequest('GET', ACCOUNT_ENDPOINT, '', '', credentials, GateAccountSchema, 'INVALID_ACCOUNT_RESPONSE', false, 'low'),
-      this.signedRequest('GET', POSITIONS_ENDPOINT, '', '', credentials, z.array(GatePositionSchema), 'INVALID_POSITIONS_RESPONSE', false, 'low'),
-      this.signedRequest('GET', MARGIN_POSITIONS_ENDPOINT, '', '', credentials, z.array(GateMarginPositionSchema), 'INVALID_MARGIN_POSITIONS_RESPONSE', false, 'low'),
-      this.signedRequest('GET', OPEN_ORDERS_ENDPOINT, '', '', credentials, z.array(GateOrderSchema), 'INVALID_OPEN_ORDERS_RESPONSE', false, 'low'),
-      this.signedRequest('GET', HISTORY_TRADES_ENDPOINT, historyQuery, '', credentials, z.array(GateTradeSchema), 'INVALID_TRADES_RESPONSE', false, 'low'),
+      this.signedRequest('GET', ACCOUNT_ENDPOINT, '', '', credentials, GateAccountSchema, 'INVALID_ACCOUNT_RESPONSE', 'low'),
+      this.signedRequest('GET', POSITIONS_ENDPOINT, '', '', credentials, z.array(GatePositionSchema), 'INVALID_POSITIONS_RESPONSE', 'low'),
+      this.signedRequest('GET', MARGIN_POSITIONS_ENDPOINT, '', '', credentials, z.array(GateMarginPositionSchema), 'INVALID_MARGIN_POSITIONS_RESPONSE', 'low'),
+      this.signedRequest('GET', OPEN_ORDERS_ENDPOINT, '', '', credentials, z.array(GateOrderSchema), 'INVALID_OPEN_ORDERS_RESPONSE', 'low'),
+      this.signedRequest('GET', HISTORY_TRADES_ENDPOINT, historyQuery, '', credentials, z.array(GateTradeSchema), 'INVALID_TRADES_RESPONSE', 'low'),
     ]);
     return { account, positions, marginPositions, openOrders, recentTrades };
   }
@@ -396,19 +391,18 @@ export class GateCrossExClient implements TradingCrossExGateway, PortfolioOperat
       credentials,
       GateOrderActionResponseSchema,
       'INVALID_ORDER_ACTION_RESPONSE',
-      true,
       'urgent',
     );
   }
 
   async cancelOrder(credentials: GateCredentials, orderId: string): Promise<GateOrderActionResponse> {
     if (!/^[a-zA-Z0-9_-]{1,128}$/.test(orderId)) throw new GateApiError(0, 'INVALID_ORDER_ID');
-    return this.signedRequest('DELETE', `${ORDERS_ENDPOINT}/${encodeURIComponent(orderId)}`, '', '', credentials, GateOrderActionResponseSchema, 'INVALID_ORDER_ACTION_RESPONSE', false, 'urgent');
+    return this.signedRequest('DELETE', `${ORDERS_ENDPOINT}/${encodeURIComponent(orderId)}`, '', '', credentials, GateOrderActionResponseSchema, 'INVALID_ORDER_ACTION_RESPONSE', 'urgent');
   }
 
   async queryOrder(credentials: GateCredentials, orderId: string): Promise<GateCrossExOrder> {
     if (!/^[a-zA-Z0-9_-]{1,128}$/.test(orderId)) throw new GateApiError(0, 'INVALID_ORDER_ID');
-    return this.signedRequest('GET', `${ORDERS_ENDPOINT}/${encodeURIComponent(orderId)}`, '', '', credentials, GateOrderSchema, 'INVALID_ORDER_RESPONSE', false, 'high');
+    return this.signedRequest('GET', `${ORDERS_ENDPOINT}/${encodeURIComponent(orderId)}`, '', '', credentials, GateOrderSchema, 'INVALID_ORDER_RESPONSE', 'high');
   }
 
   async queryLeverages(credentials: GateCredentials, symbols: string[]): Promise<Record<string, string>> {
@@ -435,7 +429,6 @@ export class GateCrossExClient implements TradingCrossExGateway, PortfolioOperat
       credentials,
       GateTransferResponseSchema,
       'INVALID_TRANSFER_RESPONSE',
-      false,
       'high',
     );
   }
@@ -451,7 +444,7 @@ export class GateCrossExClient implements TradingCrossExGateway, PortfolioOperat
     }).toString();
     return this.signedRequest(
       'GET', TRANSFERS_ENDPOINT, queryString, '', credentials,
-      z.array(GateTransferRecordSchema), 'INVALID_TRANSFERS_RESPONSE', false, 'normal',
+      z.array(GateTransferRecordSchema), 'INVALID_TRANSFERS_RESPONSE', 'normal',
     );
   }
 
@@ -467,7 +460,7 @@ export class GateCrossExClient implements TradingCrossExGateway, PortfolioOperat
     }).toString();
     return this.signedRequest(
       'GET', ACCOUNT_BOOK_ENDPOINT, queryString, '', credentials,
-      z.array(GateAccountBookRecordSchema), 'INVALID_ACCOUNT_BOOK_RESPONSE', false, 'normal',
+      z.array(GateAccountBookRecordSchema), 'INVALID_ACCOUNT_BOOK_RESPONSE', 'normal',
     );
   }
 
@@ -479,7 +472,6 @@ export class GateCrossExClient implements TradingCrossExGateway, PortfolioOperat
     credentials: GateCredentials,
     schema: z.ZodType<T>,
     invalidSchemaLabel: string,
-    attributeBrokerOrder = false,
     priority: AuthenticatedRequestPriority = 'normal',
   ): Promise<T> {
     const requestPath = `/api/v4${endpoint}`;
@@ -506,7 +498,6 @@ export class GateCrossExClient implements TradingCrossExGateway, PortfolioOperat
             KEY: credentials.apiKey,
             Timestamp: timestamp,
             SIGN: signature,
-            ...(attributeBrokerOrder ? { 'X-Gate-Channel-Id': BROKER_CHANNEL_ID } : {}),
           },
           ...(body ? { body } : {}),
           redirect: 'error',

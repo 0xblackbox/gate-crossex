@@ -145,8 +145,8 @@ A bootstrap installation has no system service to uninstall. Stop it, back up an
   The backend is local-only; application JavaScript never receives stored API secrets.
 - 发布包会校验哈希，但目前尚未经过 Apple 公证或 Windows Authenticode 签名。<br>
   Release archives are checksum-verified but are not yet Apple-notarized or Windows Authenticode-signed.
-- Gate 可能向维护者支付 API Broker 返佣；这不会改变你的手续费，也不会授予维护者账户访问权限。<br>
-  Gate may pay the maintainer an API Broker rebate; this does not change your fees or grant account access.
+- 下单请求不包含 API Broker 归因头；通过本客户端创建的订单不会归因给维护者。<br>
+  Order-placement requests omit API Broker attribution headers; orders created through this client are not attributed to the maintainer.
 
 请通过 [GitHub 私密漏洞报告](SECURITY.md)提交安全问题。请勿公开发布 API 密钥、账户标识、数据库或未脱敏日志。
 

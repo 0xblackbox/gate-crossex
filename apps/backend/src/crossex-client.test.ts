@@ -104,7 +104,7 @@ describe('Gate APIv4 signing', () => {
     await client.cancelOrder(credentials, '123456');
 
     expect(calls).toEqual([
-      expect.objectContaining({ url: 'https://api.gateio.ws/api/v4/crossex/orders', method: 'POST', body: expect.stringContaining('OKX_FUTURE_BTC_USDT'), sign: expect.stringMatching(/^[a-f0-9]{128}$/), channel: 'yourquantguy' }),
+      expect.objectContaining({ url: 'https://api.gateio.ws/api/v4/crossex/orders', method: 'POST', body: expect.stringContaining('OKX_FUTURE_BTC_USDT'), sign: expect.stringMatching(/^[a-f0-9]{128}$/), channel: null }),
       expect.objectContaining({ url: 'https://api.gateio.ws/api/v4/crossex/orders/123456', method: 'DELETE', body: null, sign: expect.stringMatching(/^[a-f0-9]{128}$/), channel: null }),
     ]);
   });

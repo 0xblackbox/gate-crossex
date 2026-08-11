@@ -14,7 +14,7 @@ CrossEx REST is served below `https://api.gateio.ws/api/v4/crossex/*`. The adapt
 - instrument and risk-limit discovery;
 - order creation, order cancellation, leverage updates, and Spot/CrossEx transfers.
 
-Private requests use Gate APIv4 `KEY`, `Timestamp`, and HMAC-SHA512 `SIGN` authentication. Order-placement requests also include the disclosed `X-Gate-Channel-Id: yourquantguy`; other authenticated requests do not.
+Private requests use Gate APIv4 `KEY`, `Timestamp`, and HMAC-SHA512 `SIGN` authentication. The client does not send a broker-attribution header on order-placement or other authenticated requests.
 
 `GET /crossex/rule/symbols` is the runtime source of truth for venue/product availability and trading limits. The application does not infer that an instrument exists from a static venue list. Gate documents no CrossEx testnet, so execution is production-only.
 

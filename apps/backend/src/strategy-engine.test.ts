@@ -1101,7 +1101,13 @@ describe('strategy engine', () => {
     await waitFor(() => runtime.getStrategy(record.id).openPosition === '0');
     expect(runtime.getStrategy(record.id).status).toBe('COMPLETED');
     expect(runtime.getStrategy(record.id).realizedPnl).toBe('2');
-    expect(runtime.listStrategies().find((strategy) => strategy.id === record.id)?.realizedPnl).toBe('2');
+    expect(runtime.getStrategy(record.id).tradingFees).toBe('0.02');
+    expect(runtime.getStrategy(record.id).netRealizedPnl).toBe('1.98');
+    expect(runtime.listStrategies().find((strategy) => strategy.id === record.id)).toMatchObject({
+      realizedPnl: '2',
+      tradingFees: '0.02',
+      netRealizedPnl: '1.98',
+    });
     expect(engine.listActiveStrategyIds()).not.toContain(record.id);
     const exitLogs = runtime.strategyLogs(record.id);
     expect(exitLogs.filter((log) => log.event === 'Take-profit Executed')).toHaveLength(1);

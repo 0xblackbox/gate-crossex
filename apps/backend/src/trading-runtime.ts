@@ -129,6 +129,10 @@ export interface StrategyRecord {
   progress: number; filledQuantity: string; filledLeft: string; filledRight: string; openPosition: string;
   /** Sum of realized PnL reported by strategy-linked trade fills. */
   realizedPnl: string;
+  /** Sum of trading fees reported by strategy-linked trade fills. */
+  tradingFees: string;
+  /** Realized PnL after trading fees. Funding settlements are not strategy-attributed. */
+  netRealizedPnl: string;
   createdAt: string; updatedAt: string; stoppedAt: string | null;
 }
 
@@ -169,7 +173,7 @@ function strategyFromRow(row: StrategyRow): StrategyRecord {
   return { id: row.id, kind: row.kind, status: row.status,
     config: CreateStrategyInputSchema.parse(JSON.parse(row.config_json)), progress: row.progress,
     filledQuantity: row.filled_quantity, filledLeft: row.filled_left, filledRight: row.filled_right,
-    openPosition: row.open_position, realizedPnl: '0',
+    openPosition: row.open_position, realizedPnl: '0', tradingFees: '0', netRealizedPnl: '0',
     createdAt: row.created_at, updatedAt: row.updated_at, stoppedAt: row.stopped_at };
 }
 
@@ -481,10 +485,16 @@ export class TradingRuntime {
 
   listStrategies(): StrategyRecord[] {
     const rows = this.statement("SELECT * FROM execution_strategies WHERE environment = 'live' ORDER BY created_at DESC").all() as StrategyRow[];
-    const realizedPnl = this.strategyRealizedPnl();
+    const financials = this.strategyFinancials();
     return rows.map((row) => {
       const strategy = strategyFromRow(row);
-      return { ...strategy, realizedPnl: realizedPnl.get(strategy.id)?.toString() ?? '0' };
+      const totals = financials.get(strategy.id) ?? { realizedPnl: new Decimal(0), tradingFees: new Decimal(0) };
+      return {
+        ...strategy,
+        realizedPnl: totals.realizedPnl.toString(),
+        tradingFees: totals.tradingFees.toString(),
+        netRealizedPnl: totals.realizedPnl.minus(totals.tradingFees).toString(),
+      };
     });
   }
 
@@ -1054,8 +1064,14 @@ export class TradingRuntime {
   }
 
   private withStrategyMetrics(strategy: StrategyRecord): StrategyRecord {
-    const realizedPnl = this.strategyRealizedPnl(strategy.id).get(strategy.id) ?? new Decimal(0);
-    return { ...strategy, realizedPnl: realizedPnl.toString() };
+    const totals = this.strategyFinancials(strategy.id).get(strategy.id)
+      ?? { realizedPnl: new Decimal(0), tradingFees: new Decimal(0) };
+    return {
+      ...strategy,
+      realizedPnl: totals.realizedPnl.toString(),
+      tradingFees: totals.tradingFees.toString(),
+      netRealizedPnl: totals.realizedPnl.minus(totals.tradingFees).toString(),
+    };
   }
 
   /**
@@ -1063,22 +1079,23 @@ export class TradingRuntime {
    * Decimal avoids the precision loss of SQLite's floating-point SUM while removing the previous
    * one-query-per-strategy pattern.
    */
-  private strategyRealizedPnl(strategyId?: string): Map<string, Decimal> {
+  private strategyFinancials(strategyId?: string): Map<string, { realizedPnl: Decimal; tradingFees: Decimal }> {
     const pnlRows = strategyId
-      ? this.database.prepare(`SELECT strategy_order.strategy_id, fill.realized_pnl
+      ? this.database.prepare(`SELECT strategy_order.strategy_id, fill.realized_pnl, fill.fee
           FROM execution_fills AS fill
           JOIN execution_orders AS strategy_order ON strategy_order.id = fill.order_id
           WHERE strategy_order.strategy_id = ?`).all(strategyId)
-      : this.database.prepare(`SELECT strategy_order.strategy_id, fill.realized_pnl
+      : this.database.prepare(`SELECT strategy_order.strategy_id, fill.realized_pnl, fill.fee
       FROM execution_fills AS fill
       JOIN execution_orders AS strategy_order ON strategy_order.id = fill.order_id
       WHERE strategy_order.strategy_id IS NOT NULL`).all();
-    const totals = new Map<string, Decimal>();
-    for (const row of pnlRows as Array<{ strategy_id: string; realized_pnl: string }>) {
-      totals.set(
-        row.strategy_id,
-        (totals.get(row.strategy_id) ?? new Decimal(0)).plus(new Decimal(row.realized_pnl || '0')),
-      );
+    const totals = new Map<string, { realizedPnl: Decimal; tradingFees: Decimal }>();
+    for (const row of pnlRows as Array<{ strategy_id: string; realized_pnl: string; fee: string }>) {
+      const current = totals.get(row.strategy_id) ?? { realizedPnl: new Decimal(0), tradingFees: new Decimal(0) };
+      totals.set(row.strategy_id, {
+        realizedPnl: current.realizedPnl.plus(new Decimal(row.realized_pnl || '0')),
+        tradingFees: current.tradingFees.plus(new Decimal(row.fee || '0')),
+      });
     }
     return totals;
   }

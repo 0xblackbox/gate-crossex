@@ -890,6 +890,8 @@ export const StrategyRecordSchema = z.object({
   filledRight: z.string(),
   openPosition: z.string(),
   realizedPnl: z.string(),
+  tradingFees: z.string(),
+  netRealizedPnl: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
   stoppedAt: z.string().nullable(),

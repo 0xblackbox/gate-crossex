@@ -467,6 +467,10 @@ describe('local backend', () => {
     const health = await app.inject({ method: 'GET', url: '/health', headers: { host: '127.0.0.1:17840' } });
     expect(health.statusCode).toBe(200);
     expect(health.json()).toMatchObject({ ok: true, environment: 'live', database: 'ok' });
+    expect(health.headers['content-security-policy']).toContain("script-src 'self'");
+    expect(health.headers['content-security-policy']).toContain("connect-src 'self' ws: wss:");
+    expect(health.headers['content-security-policy']).not.toContain("script-src 'unsafe-inline'");
+    expect(health.headers['content-security-policy']).not.toContain("'unsafe-eval'");
 
     const discovery = await app.inject({
       method: 'GET',

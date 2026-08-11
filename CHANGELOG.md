@@ -2,6 +2,18 @@
 
 All notable changes to Gate CrossEx are documented in this file.
 
+## Unreleased
+
+### Security
+
+- Added a restrictive CSP to the main trading console while preserving local WebSocket operation.
+
+### Fixed
+
+- Strategy history now subtracts exchange-reported trading fees from realized trade PnL, exposes
+  gross PnL and fees separately, and clearly identifies funding as excluded from the displayed net
+  trade result.
+
 ## [0.2.1] - 2026-08-10
 
 ### Added

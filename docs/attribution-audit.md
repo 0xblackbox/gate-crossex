@@ -42,6 +42,10 @@ The current tree contains no production request that attributes an account or or
 - The third-pass trading-integrity and dependency review is documented in
   [`security-audit-round-3.md`](security-audit-round-3.md). It found no additional maintainer
   commission path and changed exposure-increasing terminal dust repair to explicit opt-in.
+- The fourth-pass profitability, concurrency, browser-boundary, and supply-chain review is
+  documented in [`security-audit-round-4.md`](security-audit-round-4.md). It found no additional
+  attribution path, corrected strategy PnL to subtract recorded trading fees, and added a strict
+  CSP to the main console.
 
 ## Residual trust boundaries
 

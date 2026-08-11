@@ -748,7 +748,25 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
     app.log.info(maintenanceResult, 'pruned expired local database records');
   }
 
-  await app.register(helmet, { contentSecurityPolicy: false });
+  await app.register(helmet, {
+    contentSecurityPolicy: {
+      useDefaults: false,
+      directives: {
+        defaultSrc: ["'self'"],
+        baseUri: ["'self'"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        frameSrc: ["'none'"],
+        scriptSrc: ["'self'"],
+        scriptSrcAttr: ["'none'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:'],
+        fontSrc: ["'self'"],
+        connectSrc: ["'self'", 'ws:', 'wss:'],
+        formAction: ["'self'"],
+      },
+    },
+  });
   await app.register(rateLimit, { max: options.rateLimitMax ?? 120, timeWindow: '1 minute' });
   await app.register(cors, { origin: [...config.allowedOrigins], credentials: false });
   await app.register(formbody, { bodyLimit: 16 * 1024 });

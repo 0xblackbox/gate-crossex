@@ -6,7 +6,7 @@ umask 077
 
 ROOT="${GCT_INSTALL_ROOT:-$HOME/Library/Application Support/Gate CrossEx}"
 MARKER="$ROOT/.gate-crossex-install-root"
-LABEL="com.yourquantguy.gate-crossex"
+LABEL="com.0xblackbox.gate-crossex"
 PLIST="${GCT_LAUNCH_AGENT_PATH:-$HOME/Library/LaunchAgents/$LABEL.plist}"
 LAUNCHER_APP="${GCT_LAUNCHER_APP_PATH:-$HOME/Applications/Gate CrossEx.app}"
 SKIP_SERVICE="${GCT_SKIP_SERVICE:-0}"

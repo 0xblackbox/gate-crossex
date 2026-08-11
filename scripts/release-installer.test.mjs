@@ -72,7 +72,7 @@ function testEnvironment(installationRoot) {
   return {
     ...process.env,
     GCT_INSTALL_ROOT: installationRoot,
-    GCT_LAUNCH_AGENT_PATH: join(installationRoot, 'test-launch-agent', 'com.yourquantguy.gate-crossex.plist'),
+    GCT_LAUNCH_AGENT_PATH: join(installationRoot, 'test-launch-agent', 'com.0xblackbox.gate-crossex.plist'),
     GCT_LAUNCHER_APP_PATH: join(installationRoot, 'test-launcher', 'Gate CrossEx.app'),
     GCT_SKIP_SERVICE: '1',
   };

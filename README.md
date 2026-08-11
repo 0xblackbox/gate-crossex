@@ -10,9 +10,9 @@ A local, open-source desktop interface for Gate CrossEx market data and live tra
 
 ## 什么是 CrossEx？ | What is CrossEx?
 
-CrossEx 将 Gate.io、Binance、OKX、Bybit、Kraken、Hyperliquid 和 Deribit 接入同一个跨所账户，在这些交易所之间共享保证金和可用资金，减少在每个平台分别预留资金的需要，从而提高资金效率。[注册 CrossEx](https://www.gate.com/zh/crossex?ref=QUANTGUY)。
+CrossEx 将 Gate.io、Binance、OKX、Bybit、Kraken、Hyperliquid 和 Deribit 接入同一个跨所账户，在这些交易所之间共享保证金和可用资金，减少在每个平台分别预留资金的需要，从而提高资金效率。[访问 CrossEx](https://www.gate.com/zh/crossex)。
 
-CrossEx connects Gate.io, Binance, OKX, Bybit, Kraken, Hyperliquid, and Deribit through one cross-exchange account, sharing margin and available capital across these venues. This reduces the need to reserve funds separately on each exchange and improves capital efficiency. [Sign up for CrossEx](https://www.gate.com/crossex?ref=QUANTGUY).
+CrossEx connects Gate.io, Binance, OKX, Bybit, Kraken, Hyperliquid, and Deribit through one cross-exchange account, sharing margin and available capital across these venues. This reduces the need to reserve funds separately on each exchange and improves capital efficiency. [Visit CrossEx](https://www.gate.com/crossex).
 
 ## 主要功能 | What it does
 
@@ -46,7 +46,7 @@ The first time you use Gate CrossEx, run the **install command** once. After tha
    Paste the install command below, press Return, and wait for it to finish:
 
    ```bash
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/your-quantguy/gate-crossex/main/bootstrap.sh)"
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/0xblackbox/gate-crossex/main/bootstrap.sh)"
    ```
 
 3. 看到 `Gate CrossEx is ready to start` 后，运行下面的启动命令：<br>
@@ -72,7 +72,7 @@ The first time you use Gate CrossEx, run the **install command** once. After tha
    Paste the install command below, press Enter, and wait for it to finish:
 
    ```powershell
-   & ([scriptblock]::Create((Invoke-RestMethod https://raw.githubusercontent.com/your-quantguy/gate-crossex/main/bootstrap.ps1)))
+   & ([scriptblock]::Create((Invoke-RestMethod https://raw.githubusercontent.com/0xblackbox/gate-crossex/main/bootstrap.ps1)))
    ```
 
 3. 看到 `Gate CrossEx is ready to start` 后，在同一个 PowerShell 窗口运行下面的启动命令：<br>

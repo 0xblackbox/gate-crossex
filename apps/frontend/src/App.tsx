@@ -38,7 +38,7 @@ const FundingDetailView = lazy(() => import('./funding-route.js').then((module) 
 const FundingRatesView = lazy(() => import('./funding-route.js').then((module) => ({ default: module.FundingRatesView })));
 const PortfolioView = lazy(() => import('./portfolio-route.js').then((module) => ({ default: module.PortfolioView })));
 const FeeComparisonView = lazy(() => import('./fee-comparison-route.js').then((module) => ({ default: module.FeeComparisonView })));
-const SOURCE_CODE_URL = 'https://github.com/your-quantguy/gate-crossex';
+const SOURCE_CODE_URL = 'https://github.com/0xblackbox/gate-crossex';
 const LICENSE_URL = `${SOURCE_CODE_URL}/blob/main/LICENSE`;
 const RELEASE_VERSION = `v${import.meta.env.VITE_APP_VERSION}`;
 
@@ -821,7 +821,7 @@ function App() {
     <header className="topbar">
       <button
         className="brand"
-        aria-label="All In One by yourQuantGuy — Gate CrossEx"
+        aria-label="Gate CrossEx local terminal"
         onClick={() => navigate({ workspace: 'Trade' })}
       >
         <span className="brand-symbol" aria-hidden="true">
@@ -830,7 +830,7 @@ function App() {
         <span className="brand-copy">
           <span className="brand-title">
             <strong>All In One</strong>
-            <small>by yourQuantGuy</small>
+            <small>community fork</small>
           </span>
           <span className="brand-edition">Gate CrossEx</span>
         </span>

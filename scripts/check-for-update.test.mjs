@@ -45,6 +45,19 @@ test('does not report the installed release as an update', async () => {
   assert.equal(update, null);
 });
 
+test('ignores a stale repository saved by an older source installation', async () => {
+  let requestedUrl = '';
+  await checkForUpdate({
+    environment: {},
+    fetchImpl: async (url) => {
+      requestedUrl = url;
+      return { ok: true, json: async () => ({ tag_name: `v${currentVersion}` }) };
+    },
+    savedSource: { ref: 'main', repository: 'example/legacy-install' },
+  });
+  assert.equal(requestedUrl, 'https://api.github.com/repos/0xblackbox/gate-crossex/releases/latest');
+});
+
 test('skips update checks for a pinned bootstrap source ref', async () => {
   let requested = false;
   const update = await checkForUpdate({

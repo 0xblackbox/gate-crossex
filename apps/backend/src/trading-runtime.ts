@@ -774,7 +774,9 @@ export class TradingRuntime {
         throw new TradingRuntimeError('order_position_exceeds_leverage_limit', 409);
       }
     }
-    const clientOrderId = `gct-${Date.now()}-${randomUUID().slice(0, 8)}`;
+    // Gate needs a stable client reference for ambiguous-submit recovery, but the
+    // value itself does not need to identify this terminal or its maintainer.
+    const clientOrderId = randomUUID();
     const gateInput = CrossExOrderRequestSchema.parse({ text: clientOrderId, symbol: input.symbol, side: input.side,
       type: input.type, time_in_force: input.timeInForce, qty: input.quantity, price: input.price,
       reduce_only: input.reduceOnly ? 'true' : 'false', position_side: input.positionSide });

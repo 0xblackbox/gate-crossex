@@ -91,10 +91,17 @@ describe('Gate APIv4 signing', () => {
   });
 
   it('signs and sends only the documented CrossEx order create and cancel routes', async () => {
-    const calls: Array<{ url: string; method: string; body: string | null; sign: string | null; channel: string | null }> = [];
+    const calls: Array<{ url: string; method: string; body: string | null; headers: string[]; sign: string | null; channel: string | null }> = [];
     const fetchMock = vi.fn(async (url: string | URL | Request, init?: RequestInit) => {
       const headers = new Headers(init?.headers);
-      calls.push({ url: String(url), method: init?.method ?? '', body: init?.body ? String(init.body) : null, sign: headers.get('SIGN'), channel: headers.get('X-Gate-Channel-Id') });
+      calls.push({
+        url: String(url),
+        method: init?.method ?? '',
+        body: init?.body ? String(init.body) : null,
+        headers: [...headers.keys()].sort(),
+        sign: headers.get('SIGN'),
+        channel: headers.get('X-Gate-Channel-Id'),
+      });
       return new Response(JSON.stringify({ order_id: '123456', text: 'gct-order-1' }), { status: 200 });
     });
     const client = new GateCrossExClient(fetchMock as typeof fetch, () => 1_700_000_000_000);
@@ -103,10 +110,23 @@ describe('Gate APIv4 signing', () => {
       type: 'LIMIT', time_in_force: 'POC', qty: '0.01', price: '62000', reduce_only: 'false', position_side: 'NONE' });
     await client.cancelOrder(credentials, '123456');
 
-    expect(calls).toEqual([
-      expect.objectContaining({ url: 'https://api.gateio.ws/api/v4/crossex/orders', method: 'POST', body: expect.stringContaining('OKX_FUTURE_BTC_USDT'), sign: expect.stringMatching(/^[a-f0-9]{128}$/), channel: null }),
-      expect.objectContaining({ url: 'https://api.gateio.ws/api/v4/crossex/orders/123456', method: 'DELETE', body: null, sign: expect.stringMatching(/^[a-f0-9]{128}$/), channel: null }),
-    ]);
+    expect(calls[0]).toEqual({
+      url: 'https://api.gateio.ws/api/v4/crossex/orders',
+      method: 'POST',
+      body: JSON.stringify({ text: 'gct-order-1', symbol: 'OKX_FUTURE_BTC_USDT', side: 'BUY', type: 'LIMIT',
+        time_in_force: 'POC', qty: '0.01', price: '62000', reduce_only: 'false', position_side: 'NONE' }),
+      headers: ['accept', 'content-type', 'key', 'sign', 'timestamp'],
+      sign: expect.stringMatching(/^[a-f0-9]{128}$/),
+      channel: null,
+    });
+    expect(calls[1]).toEqual({
+      url: 'https://api.gateio.ws/api/v4/crossex/orders/123456',
+      method: 'DELETE',
+      body: null,
+      headers: ['accept', 'key', 'sign', 'timestamp'],
+      sign: expect.stringMatching(/^[a-f0-9]{128}$/),
+      channel: null,
+    });
   });
 
   it('uses only the five documented authenticated GETs for a portfolio snapshot', async () => {

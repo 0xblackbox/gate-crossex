@@ -10,13 +10,13 @@ umask 077
 INSTALL_DIR="${GCT_INSTALL_DIR:-$HOME/gate-crossex}"
 MARKER_TEXT="Gate CrossEx source install v1"
 MARKER="$INSTALL_DIR/.gate-crossex-source-install"
-SAVED_REPO=""
 SAVED_REF=""
 if [ -f "$INSTALL_DIR/.gate-crossex-source.json" ]; then
-  SAVED_REPO="$(sed -n 's/^[[:space:]]*"repository":[[:space:]]*"\([^"]*\)".*/\1/p' "$INSTALL_DIR/.gate-crossex-source.json" | head -n 1)"
   SAVED_REF="$(sed -n 's/^[[:space:]]*"ref":[[:space:]]*"\([^"]*\)".*/\1/p' "$INSTALL_DIR/.gate-crossex-source.json" | head -n 1)"
 fi
-REPO_SLUG="${GCT_REPO_SLUG:-${SAVED_REPO:-0xblackbox/gate-crossex}}"
+# Repository ownership is selected by this bootstrap, not inherited from an older install.
+# GCT_REPO_SLUG remains available for an explicit one-shot override.
+REPO_SLUG="${GCT_REPO_SLUG:-0xblackbox/gate-crossex}"
 SOURCE_REF="${GCT_SOURCE_REF:-${SAVED_REF:-main}}"
 NODE_VERSION="${GCT_NODE_VERSION:-24.18.0}"
 MODE="${1:-install}"

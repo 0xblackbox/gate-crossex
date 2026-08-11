@@ -17,9 +17,11 @@ describe('CrossEx private stream liveness', () => {
     await new Promise<void>((resolve) => server.once('listening', resolve));
     const address = server.address();
     if (typeof address === 'string' || !address) throw new Error('missing server address');
+    const sent: unknown[] = [];
     server.on('connection', (socket) => {
       socket.on('message', (data) => {
         const parsed = JSON.parse(String(data)) as { event?: string; channel?: string; payload?: unknown };
+        sent.push(parsed);
         if (parsed.event === 'login') {
           socket.send(JSON.stringify({ event: 'login', result: { code: '100000', message: 'success' } }));
         } else if (parsed.event === 'subscribe' && parsed.channel) {
@@ -39,6 +41,21 @@ describe('CrossEx private stream liveness', () => {
       stream.start();
       await waitFor(() => stream.snapshot().state === 'live');
       expect(stream.snapshot()).toMatchObject({ state: 'live', retryAttempt: 0, lastReadyAt: expect.any(String) });
+      expect(sent[0]).toEqual({
+        time: expect.any(Number),
+        event: 'login',
+        request_id: expect.stringMatching(/^[0-9a-f-]{36}$/),
+        payload: {
+          method: 'api_key',
+          api_key: 'stream-key',
+          sign: expect.stringMatching(/^[a-f0-9]{128}$/),
+        },
+      });
+      expect(sent.slice(1)).toHaveLength(5);
+      expect(sent.slice(1).every((message) => {
+        const value = message as Record<string, unknown>;
+        return Object.keys(value).sort().join(',') === 'channel,event,payload,request_id,time';
+      })).toBe(true);
     } finally {
       stream.stop();
       await new Promise<void>((resolve) => server.close(() => resolve()));

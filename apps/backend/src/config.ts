@@ -2,6 +2,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+const GATE_REST_URL = 'https://api.gateio.ws/api/v4';
+const GATE_PUBLIC_WEBSOCKET_URL = 'wss://api.gateio.ws/ws/crossex/public';
+const GATE_PRIVATE_WEBSOCKET_URL = 'wss://api.gateio.ws/ws/crossex';
 
 export interface BackendConfig {
   host: string;
@@ -25,6 +28,28 @@ function parsePort(value: string, name: string): number {
     throw new Error(`${name} must be an integer between 1 and 65535`);
   }
   return port;
+}
+
+function gateEndpoint(
+  environment: NodeJS.ProcessEnv,
+  name: 'GCT_GATE_REST_URL' | 'GCT_GATE_PUBLIC_WS_URL' | 'GCT_GATE_PRIVATE_WS_URL',
+  fallback: string,
+  protocols: ReadonlySet<string>,
+): string {
+  const value = environment[name] ?? fallback;
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error(`${name} must be an absolute URL`);
+  }
+  if (!protocols.has(parsed.protocol) || parsed.username || parsed.password || parsed.search || parsed.hash) {
+    throw new Error(`${name} is not a valid Gate endpoint URL`);
+  }
+  if (value !== fallback && environment.GCT_ALLOW_UNSAFE_GATE_ENDPOINTS !== '1') {
+    throw new Error(`${name} override requires GCT_ALLOW_UNSAFE_GATE_ENDPOINTS=1`);
+  }
+  return value;
 }
 
 export function loadConfig(environment: NodeJS.ProcessEnv = process.env): BackendConfig {
@@ -56,8 +81,8 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): Backen
     allowedOrigin,
     allowedOrigins: new Set([allowedOrigin, ...loopbackOrigins]),
     allowedHosts: new Set(['127.0.0.1', 'localhost', '::1', ...configuredHosts]),
-    gateRestBaseUrl: environment.GCT_GATE_REST_URL ?? 'https://api.gateio.ws/api/v4',
-    gatePublicWebSocketUrl: environment.GCT_GATE_PUBLIC_WS_URL ?? 'wss://api.gateio.ws/ws/crossex/public',
-    gatePrivateWebSocketUrl: environment.GCT_GATE_PRIVATE_WS_URL ?? 'wss://api.gateio.ws/ws/crossex',
+    gateRestBaseUrl: gateEndpoint(environment, 'GCT_GATE_REST_URL', GATE_REST_URL, new Set(['https:', 'http:'])),
+    gatePublicWebSocketUrl: gateEndpoint(environment, 'GCT_GATE_PUBLIC_WS_URL', GATE_PUBLIC_WEBSOCKET_URL, new Set(['wss:', 'ws:'])),
+    gatePrivateWebSocketUrl: gateEndpoint(environment, 'GCT_GATE_PRIVATE_WS_URL', GATE_PRIVATE_WEBSOCKET_URL, new Set(['wss:', 'ws:'])),
   };
 }

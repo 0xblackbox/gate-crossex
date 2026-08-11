@@ -168,20 +168,20 @@ function Install-GateCrossExSource {
 
     $InstallRoot = [IO.Path]::GetFullPath((Get-Setting 'GCT_INSTALL_DIR' (Join-Path $env:USERPROFILE 'gate-crossex'))).TrimEnd('\', '/')
     $Marker = Join-Path $InstallRoot '.gate-crossex-source-install'
-    $SavedRepository = '0xblackbox/gate-crossex'
     $SavedRef = 'main'
     $ExistingSourceConfig = Join-Path $InstallRoot '.gate-crossex-source.json'
     if (Test-Path -LiteralPath $ExistingSourceConfig -PathType Leaf) {
         try {
             $SourceConfig = Get-Content -LiteralPath $ExistingSourceConfig -Raw | ConvertFrom-Json
-            if (-not [string]::IsNullOrWhiteSpace([string]$SourceConfig.repository)) { $SavedRepository = [string]$SourceConfig.repository }
             if (-not [string]::IsNullOrWhiteSpace([string]$SourceConfig.ref)) { $SavedRef = [string]$SourceConfig.ref }
         }
         catch {
             throw "The existing source metadata is invalid: $ExistingSourceConfig"
         }
     }
-    $RepoSlug = Get-Setting 'GCT_REPO_SLUG' $SavedRepository
+    # Do not inherit repository ownership from an older installation. An explicit
+    # GCT_REPO_SLUG still supports deliberate one-shot source overrides.
+    $RepoSlug = Get-Setting 'GCT_REPO_SLUG' '0xblackbox/gate-crossex'
     $SourceRef = Get-Setting 'GCT_SOURCE_REF' $SavedRef
     $NodeVersion = Get-Setting 'GCT_NODE_VERSION' '24.18.0'
 

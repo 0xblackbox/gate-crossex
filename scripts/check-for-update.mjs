@@ -83,7 +83,10 @@ export async function checkForUpdate({
   const configuredRef = environment.GCT_SOURCE_REF || source?.ref;
   if (configuredRef && configuredRef !== 'main' && configuredRef !== 'master') return null;
 
-  const repository = environment.GCT_REPO_SLUG || source?.repository || defaultRepository;
+  // A source installation can outlive a repository fork. Never let stale on-disk
+  // metadata silently redirect the update checker; only an explicit environment
+  // override may select a repository other than this build's owner.
+  const repository = environment.GCT_REPO_SLUG || defaultRepository;
   if (!validRepository(repository)) return null;
 
   const response = await fetchImpl(`https://api.github.com/repos/${repository}/releases/latest`, {

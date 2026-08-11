@@ -35,6 +35,7 @@ test('production, install, and user-facing files contain no broker or referral a
     ['Gate broker header', /X-Gate-Channel-Id|BROKER_CHANNEL_ID/],
     ['referral query parameter', /[?&](?:ref|referral|affiliate|invite|partner|campaign|utm_[a-z]+)=/i],
     ['upstream operational repository', /your-quantguy\/gate-crossex/i],
+    ['product-prefixed external client reference', /(?:clientOrderId\s*=|\btext:)\s*`gct-/],
   ];
   const violations = [];
   for (const path of paths) {
@@ -45,4 +46,3 @@ test('production, install, and user-facing files contain no broker or referral a
   }
   assert.deepEqual(violations, []);
 });
-

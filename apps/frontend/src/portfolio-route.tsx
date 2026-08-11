@@ -538,7 +538,7 @@ export function PortfolioView({ tradingSnapshot, balances, portfolio, accountStr
       amount: transferAmount,
       from: transferFrom,
       to: transferTo,
-      text: `gct-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+      text: crypto.randomUUID(),
     });
   }
 
